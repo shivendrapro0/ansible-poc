@@ -1,0 +1,5 @@
+poc1host	ansible_ssh_host=10.207.86.140
+
+
+[sapient]
+poc1host

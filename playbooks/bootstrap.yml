@@ -1,0 +1,6 @@
+---
+- hosts: all
+  tasks:
+    - name: 1. create dir
+      action: file path=~/temp.files owner=ansible group=ansible mode=0644
+
