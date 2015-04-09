@@ -1,5 +1,5 @@
-poc1host	ansible_ssh_host=10.207.86.140
+[web]
+ci-web	ansible_ssh_host=delvmplrl13.sapient.com ansible_ssh_user=root ansible_ssh_pass=rl@123
 
-
-[sapient]
-poc1host
+[app]
+ci-app  ansible_ssh_host=delvmplrl10.sapient.com ansible_ssh_user=root ansible_ssh_pass=rl@123
