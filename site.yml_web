@@ -1,0 +1,9 @@
+---
+# sequance of execution 
+
+- name: webserver installtion n configuration
+  hosts: webservers
+  remote_user: root
+
+  roles:
+    - web

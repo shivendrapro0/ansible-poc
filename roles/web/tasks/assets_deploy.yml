@@ -1,0 +1,12 @@
+---
+   - name: Create Installer Directory
+     file: path={{ installer_dir }}/codedeploy_web owner=apache group=apache mode=0440 state=directory
+
+   - name: Download Assets Package 
+     get_url: url={{ jenkins_url }}/{{ build_num }} dest={{ installer_dir }}/codedeploy_web  mode=0440
+     notify:
+        -  Extract tar package
+        -  Delete old Assets
+        -  Deploy latest assets
+        -  additional step
+        -  Delete Extracted files

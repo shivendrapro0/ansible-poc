@@ -1,0 +1,5 @@
+# Web-Server IP
+
+http_host: delvmplrl26.sapient.com
+ajp_port: 8009
+http_url: ralphlauren-us.ci.sapient.com

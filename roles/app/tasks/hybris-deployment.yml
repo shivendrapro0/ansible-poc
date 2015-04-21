@@ -1,0 +1,19 @@
+---
+
+   - name: Create Installer Directory
+     file: path={{ installer_dir }}/codedeploy owner=hybris group=hybris mode=0777 state=directory
+
+   - name: Download Tar for deployment
+     get_url: url={{ jenkins_url }}/{{ build_num }} dest={{ installer_dir }}/codedeploy  mode=0440
+
+   - name: Extract Tar 
+     command: chdir={{ installer_dir }}/codedeploy /usr/bin/tar -xvf {{ build_num }}
+
+   - name: Unzip Scripts 
+     command: chdir={{ installer_dir }}/codedeploy /usr/bin/unzip -o {{ script_pkg }} 
+
+   - name: Trigger Deployment
+     shell: export APP_HYBRIS_HOME=/app/hybris/hybris/ && chmod +x -R . && ./deploy.sh -task codeDeploy -env CI  chdir={{ installer_dir }}/codedeploy/hybris/bnr/scripts/app-scripts/
+
+   - name: wait for hybris to start
+     wait_for: host={{inventory_hostname}} port=9001
