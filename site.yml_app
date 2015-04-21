@@ -1,0 +1,9 @@
+---
+# sequance of execution 
+
+- name: application server installtion n configuration
+  hosts: appservers
+  remote_user: root
+
+  roles:
+    - app
