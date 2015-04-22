@@ -7,7 +7,12 @@
 
   roles:
     - web
+- name: solr server installtion n configuration
+  hosts: solrservers
+  remote_user: root
 
+  roles:
+    - solr
 - name: application server installtion n configuration
   hosts: appservers
   remote_user: root

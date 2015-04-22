@@ -1,12 +1,31 @@
 ---
-   - name: Create Installer Directory
-     file: path={{ installer_dir }}/codedeploy_web owner=apache group=apache mode=0440 state=directory
+  - name: Create Installer Directory
+    file: path={{ installer_dir }}/deploy owner=apache group=apache mode=0755 state=directory
 
-   - name: Download Assets Package 
-     get_url: url={{ jenkins_url }}/{{ build_num }} dest={{ installer_dir }}/codedeploy_web  mode=0440
-     notify:
-        -  Extract tar package
-        -  Delete old Assets
-        -  Deploy latest assets
-        -  additional step
-        -  Delete Extracted files
+  - name: Download Assets Package 
+    get_url: url={{ jenkins_url }}/{{ build_num }} dest={{ installer_dir }}/deploy  mode=0755
+    register: result
+
+  - name: Delete old temp file
+    command: chdir={{ installer_dir }}/deploy /usr/bin/rm -rf temp
+    when: result.changed
+
+  - name: Creating temp folder again 
+    file: path={{ installer_dir }}/deploy/temp owner=apache group=apache mode=0755 state=directory
+    when: result.changed
+
+  - name: Extract assets tar package
+    command: chdir={{ installer_dir }}/deploy /usr/bin/tar -xvf {{ build_num }} -C temp
+    when: result.changed 
+
+  - name: Delete old assets folder
+    command: chdir={{ doc_root }}/ /usr/bin/rm -rf  ralphlauren
+    when: result.changed
+
+  - name: Deploy latest assets
+    command: chdir={{ installer_dir }}/deploy/temp /usr/bin/unzip -o {{ script_pkg }}
+    when: result.changed
+
+  - name: Additional step
+    command: chdir={{ doc_root }} /usr/bin/mv {{ installer_dir }}/deploy/temp/hybris/bin/custom/ralphlauren/ralphlaurenstorefront/web/webroot  {{ doc_root }}/ralphlauren
+    when: result.changed

@@ -10,4 +10,5 @@
     jenkins_url: "http://ralphtools.sapient.com/jenkins/job/Build-HYBRIS/82/artifact/hybris_code/temp/hybris/hybrisServer"
     build_num: "Bundle-HYBRIS-1.2.13.0.tar"   
     script_pkg: "bnr-Scripts.zip"    
+    environment: "CI"
 

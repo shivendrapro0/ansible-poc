@@ -1,0 +1,64 @@
+---
+
+   - name: Setup | creating default user for solr
+     command: useradd -m {{ solr_user }} creates=/home/{{ solr_user }}
+     sudo: true
+
+   - name: Create Installer Directory
+     file: path={{ installer_dir }} owner=hybris group=hybris mode=0644 state=directory
+
+   - name: Download java
+     get_url: url={{ repo }}/Hybris/jdk-{{ java_version }}.zip dest={{ installer_dir }}  mode=0440
+     register: java_result
+
+   - name: Install Java
+     command: chdir={{ installer_dir }} /usr/bin/unzip -o jdk-{{ java_version }}.zip -d {{ application_home }}
+     when: java_result.changed
+
+   - name: Symlink install directory jdk
+     file: src={{ application_home }}/jdk-{{ java_version }} path={{ application_home }}/jdk state=link
+
+
+   - name: Download Tomcat
+     get_url: url={{ repo }}/Hybris/apache-tomcat-{{ tomcat_version }}.zip dest={{ installer_dir }}  mode=0440
+     register: tomcat_result
+
+   - name: Install Tomcat
+     command: chdir={{ installer_dir }} /usr/bin/unzip -o apache-tomcat-{{ tomcat_version }}.zip -d {{ application_home }}
+     when: tomcat_result.changed
+
+   - name: Symlink install directory tomcat
+     file: src={{ application_home }}/apache-tomcat-{{ tomcat_version }} path={{ application_home }}/tomcat state=link
+
+   - name: update server.xml
+     template: src=server.xml.j2 dest={{ application_home }}/tomcat/conf/server.xml
+
+   - name: Download solr
+     get_url: url={{ repo }}/Hybris/solr-{{ solr_version }}.zip dest={{ installer_dir }}  mode=0440
+     register: solr_result
+
+   - name: Install solr
+     command: chdir={{ installer_dir }} /usr/bin/unzip -o solr-{{ solr_version }}.zip -d {{ application_home }}/tomcat/
+     when: solr_result.changed
+
+   - name: Copy solr.war 
+     command: chdir={{ application_home }}/tomcat/ /usr/bin/cp -r solr/server/webapps/solr.war webapps/solr.war
+     when: solr_result.changed
+
+   - name: Change ownership of Tomcat installation
+     file: path={{ application_home }}/apache-tomcat-{{ tomcat_version }} owner={{ solr_user }}  group={{ solr_user }} state=directory recurse=yes
+
+   - name: set JAVA_OPTS environment variable
+     action: lineinfile dest=~/.bash_profile regexp='export JAVA_OPTS.*' line='export JAVA_OPTS="-Dsolr.solr.home={{ application_home }}/tomcat/solr/server/ -Dsolr.data.dir={{ application_home }}/tomcat/solr/server/data"'
+     sudo: true
+     sudo_user: "{{ solr_user }}"
+
+
+   - name: restart solr
+     command:  chdir={{ application_home }}/tomcat/bin  {{ item }}
+     with_items:
+     - ./shutdown.sh
+     - ./startup.sh
+     sudo: true
+     sudo_user: "{{ solr_user }}"
+

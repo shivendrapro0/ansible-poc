@@ -2,19 +2,3 @@
   - name: restart Apache
     service: name=httpd state=restarted
 
-  - name: Extract tar package
-    command: chdir={{ installer_dir }}/codedeploy_web /usr/bin/tar -xvf {{ build_num }}
-
-  - name: Delete old Assets
-    command: chdir={{ doc_root }}/ /usr/bin/rm -rf ralphlauren
-
-  - name: Deploy latest assets
-    command: chdir={{ installer_dir }}/codedeploy_web /usr/bin/unzip -o {{ script_pkg }} -d {{ doc_root }}
-
-  - name: additional step
-    command: chdir={{ doc_root }} /usr/bin/mv {{ doc_root }}/hybris/bin/custom/ralphlauren/ralphlaurenstorefront/web/webroot  {{ doc_root }}/ralphlauren
-
-  - name: Delete Extracted files
-    command: chdir={{ installer_dir }}/codedeploy_web /usr/bin/rm -rf "*.zip"
-
-
