@@ -1,36 +1,36 @@
 ---
 
    - name: Create deploy directory
-     file: path={{ installer_dir }}/deploy owner={{ hybrisuser }} group={{ hybrisuser }} mode=0777 state=directory
+     file: path={{ installer_dir }}/codedeploy owner={{ hybrisuser }} group={{ hybrisuser }} mode=0777 state=directory
 
    - name: Download Tar for deployment
-     get_url: url={{ jenkins_url }}/{{ build_num }} dest={{ installer_dir }}/deploy  mode=0777
+     get_url: url={{ jenkins_url }}/{{ build_num }} dest={{ installer_dir }}/codedeploy  mode=0777
      sudo: True
      sudo_user: "{{ hybrisuser }}"
      register: latestcode_result
 
    - name: Delete old app file
-     command: chdir={{ installer_dir }}/deploy /usr/bin/rm -rf app
+     command: chdir={{ installer_dir }}/codedeploy /usr/bin/rm -rf app
      when: latestcode_result.changed
 
    - name: Creating app folder again
-     file: path={{ installer_dir }}/deploy/app owner={{ hybrisuser }} group={{ hybrisuser }} mode=0755 state=directory
+     file: path={{ installer_dir }}/codedeploy/app owner={{ hybrisuser }} group={{ hybrisuser }} mode=0755 state=directory
      when: latestcode_result.changed
 
    - name: Extract Tar 
-     command: chdir={{ installer_dir }}/deploy /usr/bin/tar -xvf {{ build_num }} -C app
+     command: chdir={{ installer_dir }}/codedeploy /usr/bin/tar -xvf {{ build_num }} -C app
      sudo: True
      sudo_user: "{{ hybrisuser }}"
      when: latestcode_result.changed
 
    - name: Unzip Scripts 
-     command: chdir={{ installer_dir }}/deploy/app /usr/bin/unzip -o {{ script_pkg }} 
+     command: chdir={{ installer_dir }}/codedeploy/app /usr/bin/unzip -o {{ script_pkg }} 
      sudo: True
      sudo_user: "{{ hybrisuser }}"
      when: latestcode_result.changed
 
    - name: Trigger Deployment
-     shell: echo {{ env_name  }} && export APP_HYBRIS_HOME={{ APP_HYBRIS_HOME }} && chmod +x -R . && ./deploy.sh -task codeDeploy -env {{ env_name }}  chdir={{ installer_dir }}/deploy/app/hybris/bnr/scripts/app-scripts/
+     shell: echo {{ env_name  }} && export APP_HYBRIS_HOME={{ APP_HYBRIS_HOME }} && chmod +x -R . && ./deploy.sh -task codeDeploy -env {{ env_name }}  chdir={{ installer_dir }}/codedeploy/app/hybris/bnr/scripts/app-scripts/
      sudo: True
      sudo_user: "{{ hybrisuser }}"
      when: latestcode_result.changed
