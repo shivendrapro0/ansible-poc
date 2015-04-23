@@ -8,7 +8,7 @@
      sudo: true
 
    - name: Create Installer Directory 
-     file: path={{ installer_dir }} owner={{ hybrisuser }} group={{ hybrisuser }} mode=0644 state=directory
+     file: path={{ installer_dir }} owner={{ hybrisuser }} group={{ hybrisuser }} mode=0777 state=directory
      ignore_errors: True
 
    - name: check if hybris installer is avaiable
@@ -17,7 +17,7 @@
      register: java_installer_check
 
    - name: Download java 
-     get_url: url={{ repo }}/Hybris/jdk-{{ java_version }}.zip dest={{ installer_dir }}  mode=0440 
+     get_url: url={{ repo }}/Hybris/jdk-{{ java_version }}.zip dest={{ installer_dir }}  mode=0777
      register: java_result
      when: java_installer_check.changed
 
@@ -38,7 +38,7 @@
      register: installer_check
 
    - name: Download Hybris 
-     get_url: url={{ repo }}/Hybris/hybris-commerce-suite-{{ hybris_version }}.zip dest={{ installer_dir }}  mode=0440
+     get_url: url={{ repo }}/Hybris/hybris-commerce-suite-{{ hybris_version }}.zip dest={{ installer_dir }}  mode=0777
      when: installer_check|failed
      register: hybris_result
 
@@ -66,7 +66,7 @@
 
    - name: Hybris Configuration | ant clean all
      shell: . ./setantenv.sh && ant clean all -Dinput.template={{ mode }}  -DJAVAMEM=3G chdir={{ application_home }}/hybris/hybris/bin/platform
-    # when: hybris_result.changed
+     when: hybris_result.changed
 
    - name: Download hybris License 
      get_url: url={{ repo }}/Hybris/hybrislicence.jar dest={{ installer_dir }} mode=0440
@@ -78,7 +78,7 @@
 
    - name: Change ownership of Tomcat installation
      file: path={{ application_home }}/hybris/hybris owner={{ application_user }}  group={{ application_user }} state=directory recurse=yes
-     #when: hybris_result.changed
+     when: hybris_result.changed
 
    - name: Restart hybris
      command:  chdir={{ application_home }}/hybris/hybris/bin/platform/ ./hybrisserver.sh {{ item }}
