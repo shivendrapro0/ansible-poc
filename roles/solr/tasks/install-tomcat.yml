@@ -25,15 +25,18 @@
    - name: Install Tomcat
      command: chdir={{ installer_dir }} /usr/bin/unzip -o apache-tomcat-{{ tomcat_version }}.zip -d {{ application_home }}
      when: tomcat_result.changed
+     notify: restart solr
 
    - name: Symlink install directory tomcat
      file: src={{ application_home }}/apache-tomcat-{{ tomcat_version }} path={{ application_home }}/tomcat state=link
 
    - name: update server.xml
      template: src=server.xml.j2 dest={{ application_home }}/tomcat/conf/server.xml
+     notify: restart solr
 
    - name: update init.script
      template: src=init.script.j2 dest={{ application_home }}/tomcat/bin/init-script.sh
+     notify: restart solr
 
    - name: Download solr
      get_url: url={{ repo }}/Hybris/solr-{{ solr_version }}.zip dest={{ installer_dir }}  mode=0440
@@ -42,23 +45,25 @@
    - name: Install solr
      command: chdir={{ installer_dir }} /usr/bin/unzip -o solr-{{ solr_version }}.zip -d {{ application_home }}/tomcat/
      when: solr_result.changed
+     notify: restart solr
+
+   - name: Download solr lib
+     get_url: url={{ repo }}/Hybris/solr-{{ solr_version }}-lib.zip dest={{ installer_dir }}  mode=0440
+     register: solr_lib_result
+
+   - name: Install solr lib
+     command: chdir={{ installer_dir }} /usr/bin/unzip -o solr-{{ solr_version }}-lib.zip -d {{ application_home }}/tomcat/lib
+     when: solr_lib_result.changed
+     notify: restart solr
 
    - name: Copy solr.war 
      command: chdir={{ application_home }}/tomcat/ /usr/bin/cp -r solr/server/webapps/solr.war webapps/solr.war
      when: solr_result.changed
+     notify: restart solr
 
    - name: Change ownership of Tomcat installation
      file: path={{ application_home }}/apache-tomcat-{{ tomcat_version }} owner={{ solr_user }}  group={{ solr_user }} state=directory recurse=yes
 
    - name: Change scripts permission
      file: dest={{ application_home }}/tomcat/bin/ state=directory mode=0775 recurse=yes owner={{ solr_user }}  group={{ solr_user }}
-
-   #- name: set JAVA_OPTS environment variable
-   #  action: lineinfile dest=~/.bash_profile regexp='export JAVA_OPTS.*' line='export JAVA_OPTS="-Dsolr.solr.home={{ application_home }}/tomcat/solr/server/ -Dsolr.data.dir={{ application_home }}/tomcat/solr/server/data"'
-   #  sudo: true
-   #  sudo_user: "{{ solr_user }}"
-
-
-     notify:
-     - restart solr
 
