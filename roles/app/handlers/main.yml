@@ -5,4 +5,4 @@
     - stop
     - start
     sudo: true
-    sudo_user: hybris
+    sudo_user: hybrisadmin

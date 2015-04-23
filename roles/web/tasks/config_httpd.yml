@@ -18,7 +18,7 @@
     template: src=workers.properties.j2 dest=/etc/httpd/conf/workers.properties
 
   - name: Copy SSL Certs
-    copy: src=certs dest=/etc/httpd/conf.d directory_mode=yes mode=0755
+    copy: src=certs dest=/etc/httpd/conf.d/ directory_mode=0750 mode=0775
 
     notify:
     - restart Apache

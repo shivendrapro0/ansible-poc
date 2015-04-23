@@ -1,11 +1,11 @@
 [webservers]
-web1	ansible_ssh_host=delvmplrl26.sapient.com ansible_ssh_user=root ansible_ssh_pass=rl@123
+web1	ansible_ssh_host=delvmplrl11.sapient.com ansible_ssh_user=root ansible_ssh_pass=rl@123
 
 [solrservers]
-solr1    ansible_ssh_host=delvmplrl26.sapient.com ansible_ssh_user=root ansible_ssh_pass=rl@123
+solr1   ansible_ssh_host=delvmplrl11.sapient.com ansible_ssh_user=root ansible_ssh_pass=rl@123
 
 [appservers]
-app1  ansible_ssh_host=delvmplrl26.sapient.com ansible_ssh_user=root ansible_ssh_pass=rl@123
+app1  	ansible_ssh_host=delvmplrl11.sapient.com ansible_ssh_user=root ansible_ssh_pass=rl@123
 
 [CI]
 web1

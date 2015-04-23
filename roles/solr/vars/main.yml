@@ -6,7 +6,7 @@
     java_version: "1.7.0"
     application_user: "solr"
     solr_version: "4.7"
-    solr_user: "solrusr"
+    solr_user: "solradmin"
     solr_port_http: "7001"
     solr_port_ajp: "7002"
     solr_port_shutdown: "7003"

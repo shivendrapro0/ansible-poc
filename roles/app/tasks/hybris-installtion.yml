@@ -1,11 +1,25 @@
 ---
+   - name: Setup | creating default  user
+     command: useradd -m {{ hybrisuser }} creates=/home/{{ hybrisuser }}
+     sudo: true
+
+   - name: Setup | set user password
+     shell: usermod -p $(echo '{{ hybrispassword }}' | openssl passwd -1 -stdin) {{ hybrisuser }}
+     sudo: true
 
    - name: Create Installer Directory 
-     file: path={{ installer_dir }} owner=hybris group=hybris mode=0644 state=directory
+     file: path={{ installer_dir }} owner={{ hybrisuser }} group={{ hybrisuser }} mode=0644 state=directory
+     ignore_errors: True
+
+   - name: check if hybris installer is avaiable
+     shell: ls  jdk-{{ java_version }}.zip 2>>/dev/null chdir={{ installer_dir }}
+     ignore_errors: True
+     register: java_installer_check
 
    - name: Download java 
      get_url: url={{ repo }}/Hybris/jdk-{{ java_version }}.zip dest={{ installer_dir }}  mode=0440 
      register: java_result
+     when: java_installer_check.changed
 
    - name: Install Java
      command: chdir={{ installer_dir }} /usr/bin/unzip -o jdk-{{ java_version }}.zip -d {{ application_home }}
@@ -13,12 +27,7 @@
 
    - name: Symlink install directory jdk
      file: src={{ application_home }}/jdk-{{ java_version }} path={{ application_home }}/jdk state=link
-
-   - name: Create secure folder
-     file: path={{ application_home }}/hybris/secure owner=hybris group=hybris mode=0755 state=directory
-
-   - name: Update Private properties 
-     template: src=private.properties.j2 dest={{ application_home }}/hybris/secure/private.properties
+     ignore_errors: True
 
    - name: set JAVA_HOME environment variable
      action: lineinfile dest=~/.bash_profile regexp='export JAVA_HOME.*' line='export JAVA_HOME={{ application_home }}/jdk'
@@ -39,7 +48,14 @@
 
    - name: Symlink install directory hybris
      file: src={{ application_home }}/hybris-{{ hybris_version }} path={{ application_home }}/hybris state=link
+     ignore_errors: True
 
+   - name: Create secure folder
+     file: path={{ application_home }}/hybris/secure owner={{ hybrisuser }} group={{ hybrisuser }} mode=0755 state=directory
+     ignore_errors: True
+
+   - name: Update Private properties
+     template: src=private.properties.j2 dest={{ application_home }}/hybris/secure/private.properties
    - name: Download oracle Jar
      get_url: url={{ repo }}/Hybris/ojdbc7.zip dest={{ installer_dir }} mode=0440
      register: jar_result
@@ -47,6 +63,10 @@
    - name: Install Oracle jar
      command: chdir={{ installer_dir }} /usr/bin/unzip -o ojdbc7.zip -d {{ application_home }}/hybris/hybris/bin/platform/lib/dbdriver/
      when: jar_result.changed
+
+   - name: Hybris Configuration | ant clean all
+     shell: . ./setantenv.sh && ant clean all -Dinput.template={{ mode }}  -DJAVAMEM=3G chdir={{ application_home }}/hybris/hybris/bin/platform
+    # when: hybris_result.changed
 
    - name: Download hybris License 
      get_url: url={{ repo }}/Hybris/hybrislicence.jar dest={{ installer_dir }} mode=0440
@@ -56,13 +76,9 @@
      command: chdir={{ installer_dir }} /usr/bin/cp -r hybrislicence.jar  {{ application_home }}/hybris/hybris/config/licence/hybrislicence.jar
      when: license_result.changed
 
-   - name: Hybris Configuration | ant clean all
-     shell: . ./setantenv.sh && ant clean all -Dinput.template={{ mode }}  -DJAVAMEM=3G chdir={{ application_home }}/hybris/hybris/bin/platform
-     when: hybris_result.changed
-
    - name: Change ownership of Tomcat installation
      file: path={{ application_home }}/hybris/hybris owner={{ application_user }}  group={{ application_user }} state=directory recurse=yes
-     when: hybris_result.changed
+     #when: hybris_result.changed
 
    - name: Restart hybris
      command:  chdir={{ application_home }}/hybris/hybris/bin/platform/ ./hybrisserver.sh {{ item }}
@@ -70,8 +86,8 @@
      - stop
      - start
      sudo: true
-     sudo_user: hybris
-     when: hybris_result.changed
+     sudo_user: hybrisadmin
+     #when: hybris_result.changed
 
 #   - name: wait for hybris to start
 #     wait_for: host={{inventory_hostname}} port=9001 
